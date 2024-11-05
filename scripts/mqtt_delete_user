@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Chuyển đến thư mục gốc của dự án
+cd $(dirname $(dirname $0)) || exit 1
+
+# Kiểm tra xem container EMQX có đang chạy không
+container_name="emqx"
+if ! docker ps --format "{{.Names}}" | grep -q "^$container_name\$"; then
+  echo "Container $container_name is not running."
+  exit 1
+fi
+
+# Kiểm tra đầu vào cho tên người dùng
+if [ -z "$1" ]; then
+  echo "Usage: $0 <username>"
+  exit 1
+fi
+
+EMQX_USER=$1
+
+# Thực thi lệnh xóa tài khoản quản trị viên bên trong container
+docker exec -it $container_name sh -c "
+  emqx ctl admins del $EMQX_USER
+"
